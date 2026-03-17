@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduBlend Platform — Songkhla</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a18;
+      min-height: 100vh;
+    }
+
+    /* ── SCREEN TOGGLE ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ════════════════════════════════
+       LOGIN
+    ════════════════════════════════ */
+    #login-screen {
+      min-height: 100vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background: #f5f5f3;
+    }
+    #login-screen.active { display: flex; }
+
+    .login-card {
+      background: #ffffff;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 16px;
+      padding: 2rem 2rem 1.75rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+
+    .brand-badge { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+    .brand-icon {
+      width: 38px; height: 38px;
+      background: #E1F5EE;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-icon svg { width: 20px; height: 20px; }
+    .brand-name { font-size: 15px; font-weight: 600; color: #1a1a18; }
+    .brand-sub  { font-size: 12px; color: #888780; }
+
+    .login-title { font-size: 22px; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+    .login-sub   { font-size: 14px; color: #888780; margin-bottom: 1.5rem; }
+
+    /* role selector */
+    .role-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+    .role-btn {
+      border: 0.5px solid rgba(0,0,0,0.18);
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .role-btn:hover { background: #f5f5f3; }
+    .role-btn.selected { border: 1.5px solid #1D9E75; background: #E1F5EE; }
+    .role-btn .role-icon  { font-size: 20px; margin-bottom: 4px; }
+    .role-btn .role-label { font-size: 12px; font-weight: 600; color: #1a1a18; }
+    .role-btn .role-sub   { font-size: 11px; color: #888780; }
+
+    /* fields */
+    .field-group { margin-bottom: 1rem; }
+    .field-label {
+      font-size: 13px; color: #5f5e5a;
+      margin-bottom: 6px; display: block;
+    }
+    .field-input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+      color: #1a1a18;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field-input:focus { border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+
+    .login-btn {
+      width: 100%;
+      padding: 10px;
+      background: #1D9E75;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.15s;
+    }
+    .login-btn:hover { background: #0F6E56; }
+
+    .error-msg {
+      font-size: 13px;
+      color: #A32D2D;
+      background: #FCEBEB;
+      border: 0.5px solid #F09595;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .login-footer {
+      font-size: 12px; color: #888780;
+      text-align: center;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 0.5px solid rgba(0,0,0,0.08);
+    }
+    .login-footer strong { color: #1D9E75; }
+
+    /* ════════════════════════════════
+       DASHBOARD
+    ════════════════════════════════ */
+    #dashboard-screen { min-height: 100vh; }
+
+    /* topbar */
+    .topbar {
+      background: #ffffff;
+      border-bottom: 0.5px solid rgba(0,0,0,0.1);
+      padding: 0 1.5rem;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-brand { font-size: 15px; font-weight: 600; color: #1a1a18; }
+    .topbar-tag {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .tag-teacher { background: #E1F5EE; color: #0F6E56; }
+    .tag-student { background: #E6F1FB; color: #185FA5; }
+    .tag-admin   { background: #EEEDFE; color: #3C3489; }
+
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+    }
+    .av-teacher { background: #E1F5EE; color: #0F6E56; }
+    .av-student { background: #E6F1FB; color: #185FA5; }
+    .av-admin   { background: #EEEDFE; color: #3C3489; }
+    .user-name { font-size: 13px; color: #1a1a18; }
+
+    .logout-btn {
+      font-size: 12px; font-weight: 500;
+      padding: 6px 14px;
+      border: 0.5px solid rgba(0,0,0,0.18);
+      border-radius: 8px;
+      background: #fff;
+      color: #5f5e5a;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .logout-btn:hover { background: #FCEBEB; color: #A32D2D; border-color: #F09595; }
+
+    /* body */
+    .dash-body {
+      padding: 1.5rem;
+      background: #f5f5f3;
+      min-height: calc(100vh - 54px);
+    }
+    .dash-welcome { font-size: 20px; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+    .dash-sub     { font-size: 13px; color: #888780; margin-bottom: 1.5rem; }
+
+    /* metrics */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+    .metric-card {
+      background: #ebebea;
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .metric-label { font-size: 12px; color: #5f5e5a; margin-bottom: 6px; }
+    .metric-value { font-size: 24px; font-weight: 600; color: #1a1a18; }
+    .metric-change { font-size: 11px; margin-top: 3px; color: #888780; }
+    .up   { color: #0F6E56; }
+    .down { color: #A32D2D; }
+
+    /* panels */
+    .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) { .panels { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: #ffffff;
+      border: 0.5px solid rgba(0,0,0,0.1);
+      border-radius: 14px;
+      padding: 1rem 1.25rem 1.1rem;
+    }
+    .panel-title {
+      font-size: 13px; font-weight: 600; color: #1a1a18;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 0.5px solid rgba(0,0,0,0.08);
+    }
+
+    .item-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 0;
+      border-bottom: 0.5px solid rgba(0,0,0,0.06);
+    }
+    .item-row:last-of-type { border-bottom: none; }
+
+    .item-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green  { background: #1D9E75; }
+    .dot-blue   { background: #378ADD; }
+    .dot-amber  { background: #EF9F27; }
+    .dot-purple { background: #7F77DD; }
+    .dot-coral  { background: #D85A30; }
+
+    .item-label { font-size: 13px; color: #1a1a18; flex: 1; line-height: 1.4; }
+
+    .item-badge {
+      font-size: 11px; font-weight: 500;
+      padding: 2px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .badge-live    { background: #E1F5EE; color: #0F6E56; }
+    .badge-pending { background: #FAEEDA; color: #854F0B; }
+    .badge-done    { background: #ebebea; color: #444441; }
+    .badge-new     { background: #E6F1FB; color: #185FA5; }
+    .badge-info    { background: #EEEDFE; color: #3C3489; }
+
+    .action-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.85rem; }
+    .action-btn {
+      font-size: 12px; font-weight: 500;
+      padding: 6px 13px;
+      border: 0.5px solid rgba(0,0,0,0.18);
+      border-radius: 8px;
+      background: #fff;
+      color: #1a1a18;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .action-btn:hover { background: #f5f5f3; }
+    .action-btn.primary {
+      background: #1D9E75;
+      color: #fff;
+      border-color: #1D9E75;
+    }
+    .action-btn.primary:hover { background: #0F6E56; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen" class="screen active">
+  <div class="login-card">
+    <div class="brand-badge">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">EduBlend Platform</div>
+        <div class="brand-sub">Songkhla Province · Thailand</div>
+      </div>
+    </div>
+
+    <div class="login-title">Sign in</div>
+    <div class="login-sub">Digital Learning Platform for Opportunity Expansion Schools</div>
+
+    <div class="role-selector" id="roleSelector">
+      <div class="role-btn selected" data-role="teacher" onclick="selectRole(this,'teacher')">
+        <div class="role-icon">👩‍🏫</div>
+        <div class="role-label">Teacher</div>
+        <div class="role-sub">Educator</div>
+      </div>
+      <div class="role-btn" data-role="student" onclick="selectRole(this,'student')">
+        <div class="role-icon">🎒</div>
+        <div class="role-label">Student</div>
+        <div class="role-sub">Learner</div>
+      </div>
+      <div class="role-btn" data-role="admin" onclick="selectRole(this,'admin')">
+        <div class="role-icon">🏫</div>
+        <div class="role-label">Admin</div>
+        <div class="role-sub">School head</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Username</label>
+      <input class="field-input" id="usernameInput" type="text" placeholder="Enter your username" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Password</label>
+      <input class="field-input" id="passwordInput" type="password" placeholder="Enter your password" />
+    </div>
+
+    <button class="login-btn" onclick="doLogin()">Sign in</button>
+    <div class="error-msg" id="errorMsg">Incorrect username or password. Please try again.</div>
+
+    <div class="login-footer">
+      Demo credentials &nbsp;|&nbsp;
+      Username: <strong>teacher</strong> / <strong>student</strong> / <strong>admin</strong>
+      &nbsp;·&nbsp; Password: <strong>1234</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ DASHBOARD ══════════════ -->
+<div id="dashboard-screen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-brand">EduBlend</span>
+      <span class="topbar-tag" id="roleTag">Teacher</span>
+    </div>
+    <div class="topbar-right">
+      <div class="avatar" id="topAvatar">AK</div>
+      <span class="user-name" id="topUserName">Apichaya Khwankaew</span>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <div class="dash-welcome" id="welcomeMsg">Good morning, Apichaya</div>
+    <div class="dash-sub" id="dashSub">Blended learning overview for today.</div>
+    <div class="metrics" id="metricsRow"></div>
+    <div class="panels"  id="panelsRow"></div>
+  </div>
+</div>
+
+<script>
+  /* ── data ── */
+  const USERS = {
+    teacher: { user:'teacher', pass:'1234', name:'Apichaya Khwankaew', short:'AK', greeting:'Good morning, Apichaya' },
+    student: { user:'student', pass:'1234', name:'Somchai Jaidee',     short:'SJ', greeting:'Welcome back, Somchai'  },
+    admin:   { user:'admin',   pass:'1234', name:'Principal Wanchai',  short:'WC', greeting:'Overview, Wanchai'      }
+  };
+
+  const DASH = {
+    teacher: {
+      sub: 'Blended learning overview — Songkhla Expansion School',
+      metrics: [
+        { label:'Active students',  value:'47',  change:'+3 this week',  dir:'up' },
+        { label:'Online sessions',  value:'12',  change:'this month',    dir:''   },
+        { label:'Pending grading',  value:'8',   change:'assignments',   dir:''   },
+        { label:'Attendance',       value:'91%', change:'+2% vs last',   dir:'up' }
+      ],
+      panels: [
+        {
+          title:'Today\'s schedule',
+          items:[
+            { dot:'dot-green',  label:'Math — Room 3A (face-to-face)',   badge:'badge-live',    text:'Live now' },
+            { dot:'dot-blue',   label:'Science — Online session',         badge:'badge-pending', text:'In 1 hr'  },
+            { dot:'dot-amber',  label:'Vocational Ed — Blended',          badge:'badge-pending', text:'2 PM'     },
+            { dot:'dot-purple', label:'Parent communication call',         badge:'badge-done',    text:'Done'     }
+          ],
+          actions:[{ label:'+ Add session', primary:false },{ label:'View full timetable', primary:true }]
+        },
+        {
+          title:'Student progress',
+          items:[
+            { dot:'dot-green', label:'Somchai — Unit 4 complete',    badge:'badge-new',     text:'95%'     },
+            { dot:'dot-amber', label:'Niran — Assignment overdue',    badge:'badge-pending', text:'Overdue' },
+            { dot:'dot-blue',  label:'Malee — Quiz submitted',        badge:'badge-new',     text:'Review'  },
+            { dot:'dot-coral', label:'Prasit — Low engagement',       badge:'badge-pending', text:'Alert'   }
+          ],
+          actions:[{ label:'Grade assignments', primary:true },{ label:'Download report', primary:false }]
+        }
+      ]
+    },
+    student: {
+      sub: 'Your learning journey — keep going!',
+      metrics: [
+        { label:'Courses enrolled', value:'5',   change:'2 in progress', dir:''   },
+        { label:'Assignments due',  value:'3',   change:'this week',     dir:''   },
+        { label:'Attendance',       value:'88%', change:'this term',     dir:'up' },
+        { label:'Overall score',    value:'76%', change:'+4% vs last',   dir:'up' }
+      ],
+      panels: [
+        {
+          title:'My courses',
+          items:[
+            { dot:'dot-green',  label:'Mathematics — Unit 5',      badge:'badge-live',    text:'Online'  },
+            { dot:'dot-blue',   label:'Science — Lab simulation',   badge:'badge-new',     text:'New'     },
+            { dot:'dot-amber',  label:'Thai Language — Essay due',  badge:'badge-pending', text:'Due Fri' },
+            { dot:'dot-purple', label:'Vocational Skills',          badge:'badge-done',    text:'Done'    }
+          ],
+          actions:[{ label:'Continue learning', primary:true },{ label:'View all courses', primary:false }]
+        },
+        {
+          title:'Upcoming assignments',
+          items:[
+            { dot:'dot-amber', label:'Thai Essay — 800 words',    badge:'badge-pending', text:'2 days'    },
+            { dot:'dot-blue',  label:'Math quiz — Chapter 5',     badge:'badge-new',     text:'Tomorrow'  },
+            { dot:'dot-coral', label:'Science lab report',         badge:'badge-pending', text:'5 days'    },
+            { dot:'dot-green', label:'Vocational project',         badge:'badge-done',    text:'Submitted' }
+          ],
+          actions:[{ label:'Submit assignment', primary:true },{ label:'Ask teacher', primary:false }]
+        }
+      ]
+    },
+    admin: {
+      sub: 'School-wide digital learning platform overview',
+      metrics: [
+        { label:'Total students',    value:'342', change:'+12 this term',   dir:'up' },
+        { label:'Active teachers',   value:'18',  change:'80% tech trained', dir:''  },
+        { label:'Platform uptime',   value:'99%', change:'this month',      dir:'up' },
+        { label:'Blended sessions',  value:'156', change:'this term',       dir:'up' }
+      ],
+      panels: [
+        {
+          title:'Platform health',
+          items:[
+            { dot:'dot-green', label:'LMS — Online & operational',   badge:'badge-live',    text:'Online' },
+            { dot:'dot-green', label:'Video repository — Active',     badge:'badge-live',    text:'Online' },
+            { dot:'dot-amber', label:'Wi-Fi coverage — Partial',      badge:'badge-pending', text:'Check'  },
+            { dot:'dot-blue',  label:'Thai-language UI — Beta',       badge:'badge-info',    text:'Beta'   }
+          ],
+          actions:[{ label:'Run diagnostics', primary:false },{ label:'System report', primary:true }]
+        },
+        {
+          title:'Teacher technology readiness',
+          items:[
+            { dot:'dot-green',  label:'Completed tech training',   badge:'badge-done',    text:'14 / 18' },
+            { dot:'dot-amber',  label:'Need platform support',      badge:'badge-pending', text:'4 staff' },
+            { dot:'dot-blue',   label:'Using blended approach',     badge:'badge-new',     text:'11 / 18' },
+            { dot:'dot-purple', label:'Parent comms active',        badge:'badge-info',    text:'9 / 18'  }
+          ],
+          actions:[{ label:'Schedule training', primary:true },{ label:'View all staff', primary:false }]
+        }
+      ]
+    }
+  };
+
+  /* ── helpers ── */
+  let selectedRole = 'teacher';
+
+  function selectRole(el, role) {
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedRole = role;
+    document.getElementById('usernameInput').value = role;
+  }
+
+  function doLogin() {
+    const u = document.getElementById('usernameInput').value.trim().toLowerCase();
+    const p = document.getElementById('passwordInput').value;
+    const err = document.getElementById('errorMsg');
+    const found = Object.values(USERS).find(x => x.user === u && x.pass === p);
+    if (!found) { err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    const role = Object.keys(USERS).find(k => USERS[k].user === u);
+    showDashboard(role, found);
+  }
+
+  function showDashboard(role, user) {
+    document.getElementById('login-screen').classList.remove('active');
+    document.getElementById('dashboard-screen').classList.add('active');
+
+    const d = DASH[role];
+    document.getElementById('roleTag').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+    document.getElementById('roleTag').className   = 'topbar-tag tag-' + role;
+    document.getElementById('topAvatar').textContent = user.short;
+    document.getElementById('topAvatar').className   = 'avatar av-' + role;
+    document.getElementById('topUserName').textContent = user.name;
+    document.getElementById('welcomeMsg').textContent  = user.greeting;
+    document.getElementById('dashSub').textContent     = d.sub;
+
+    document.getElementById('metricsRow').innerHTML = d.metrics.map(m => `
+      <div class="metric-card">
+        <div class="metric-label">${m.label}</div>
+        <div class="metric-value">${m.value}</div>
+        <div class="metric-change ${m.dir === 'up' ? 'up' : m.dir === 'down' ? 'down' : ''}">${m.change}</div>
+      </div>`).join('');
+
+    document.getElementById('panelsRow').innerHTML = d.panels.map(p => `
+      <div class="panel">
+        <div class="panel-title">${p.title}</div>
+        ${p.items.map(it => `
+          <div class="item-row">
+            <div class="item-dot ${it.dot}"></div>
+            <div class="item-label">${it.label}</div>
+            <span class="item-badge ${it.badge}">${it.text}</span>
+          </div>`).join('')}
+        <div class="action-btns">
+          ${p.actions.map(a => `<button class="action-btn ${a.primary ? 'primary' : ''}">${a.label}</button>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  function doLogout() {
+    document.getElementById('dashboard-screen').classList.remove('active');
+    document.getElementById('login-screen').classList.add('active');
+    document.getElementById('usernameInput').value = '';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('errorMsg').style.display = 'none';
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector('[data-role="teacher"]').classList.add('selected');
+    selectedRole = 'teacher';
+  }
+
+  /* allow Enter key to submit */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+</script>
+</body>
+</html>
